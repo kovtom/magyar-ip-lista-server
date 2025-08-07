@@ -118,8 +118,12 @@ Thumbs.db
 # Project specific
 # Generated files - these are created dynamically by the application
 hu_ip_list.rsc
+spamhaus_drop.rsc
+dshield_block.rsc
 hu_*.txt
+drop_*.txt
+dshield_*.txt
 *.tmp
 
-# Megjegyzés: A hu_ip_list.rsc és a letöltött IP fájlok kizárása
+# Megjegyzés: A hu_ip_list.rsc, spamhaus_drop.rsc, dshield_block.rsc és a letöltött IP fájlok kizárása
 # ezek a felhasználói oldalon dinamikusan generálódnak
