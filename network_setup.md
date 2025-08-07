@@ -127,3 +127,102 @@ curl http://localhost:5000/status
 # Remote testing
 curl http://[server-ip]:5000/status
 ```
+
+## Linux Service Configuration
+
+### Installing as systemd service:
+
+1. **Create service file**:
+   ```bash
+   sudo nano /etc/systemd/system/hulista.service
+   ```
+
+2. **Service file content**:
+   ```ini
+   [Unit]
+   Description=Hungarian IP List Flask Server
+   After=network.target
+   Wants=network.target
+
+   [Service]
+   Type=simple
+   User=hulista
+   Group=hulista
+   WorkingDirectory=/opt/hulista
+   ExecStart=/usr/bin/python3 /opt/hulista/hulista.py
+   Restart=always
+   RestartSec=10
+   Environment=PYTHONUNBUFFERED=1
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+3. **Create user and directory**:
+   ```bash
+   sudo useradd -r -s /bin/false hulista
+   sudo mkdir -p /opt/hulista
+   sudo cp -r * /opt/hulista/
+   sudo chown -R hulista:hulista /opt/hulista
+   ```
+
+4. **Install Python dependencies**:
+   ```bash
+   cd /opt/hulista
+   sudo pip3 install -r requirements.txt
+   ```
+
+5. **Enable and start service**:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable hulista.service
+   sudo systemctl start hulista.service
+   ```
+
+6. **Check service status**:
+   ```bash
+   sudo systemctl status hulista.service
+   sudo journalctl -u hulista.service -f
+   ```
+
+### Linux Firewall Configuration:
+
+#### UFW (Ubuntu):
+```bash
+sudo ufw allow 5000/tcp
+sudo ufw reload
+```
+
+#### firewalld (CentOS/RHEL):
+```bash
+sudo firewall-cmd --permanent --add-port=5000/tcp
+sudo firewall-cmd --reload
+```
+
+#### iptables:
+```bash
+sudo iptables -A INPUT -p tcp --dport 5000 -j ACCEPT
+sudo iptables-save > /etc/iptables/rules.v4
+```
+
+### Service Management Commands:
+
+```bash
+# Start service
+sudo systemctl start hulista.service
+
+# Stop service
+sudo systemctl stop hulista.service
+
+# Restart service
+sudo systemctl restart hulista.service
+
+# View logs
+sudo journalctl -u hulista.service
+
+# View real-time logs
+sudo journalctl -u hulista.service -f
+
+# Check if service is running
+sudo systemctl is-active hulista.service
+```

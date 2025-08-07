@@ -127,3 +127,102 @@ curl http://localhost:5000/status
 # Távolsági tesztelés
 curl http://[szerver-ip]:5000/status
 ```
+
+## Linux Service Konfiguráció
+
+### Telepítés systemd szolgáltatásként:
+
+1. **Service fájl létrehozása**:
+   ```bash
+   sudo nano /etc/systemd/system/hulista.service
+   ```
+
+2. **Service fájl tartalma**:
+   ```ini
+   [Unit]
+   Description=Magyar IP Lista Flask Szerver
+   After=network.target
+   Wants=network.target
+
+   [Service]
+   Type=simple
+   User=hulista
+   Group=hulista
+   WorkingDirectory=/opt/hulista
+   ExecStart=/usr/bin/python3 /opt/hulista/hulista.py
+   Restart=always
+   RestartSec=10
+   Environment=PYTHONUNBUFFERED=1
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+3. **Felhasználó és könyvtár létrehozása**:
+   ```bash
+   sudo useradd -r -s /bin/false hulista
+   sudo mkdir -p /opt/hulista
+   sudo cp -r * /opt/hulista/
+   sudo chown -R hulista:hulista /opt/hulista
+   ```
+
+4. **Python függőségek telepítése**:
+   ```bash
+   cd /opt/hulista
+   sudo pip3 install -r requirements.txt
+   ```
+
+5. **Szolgáltatás engedélyezése és indítása**:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable hulista.service
+   sudo systemctl start hulista.service
+   ```
+
+6. **Szolgáltatás állapotának ellenőrzése**:
+   ```bash
+   sudo systemctl status hulista.service
+   sudo journalctl -u hulista.service -f
+   ```
+
+### Linux Tűzfal Konfiguráció:
+
+#### UFW (Ubuntu):
+```bash
+sudo ufw allow 5000/tcp
+sudo ufw reload
+```
+
+#### firewalld (CentOS/RHEL):
+```bash
+sudo firewall-cmd --permanent --add-port=5000/tcp
+sudo firewall-cmd --reload
+```
+
+#### iptables:
+```bash
+sudo iptables -A INPUT -p tcp --dport 5000 -j ACCEPT
+sudo iptables-save > /etc/iptables/rules.v4
+```
+
+### Szolgáltatáskezelő Parancsok:
+
+```bash
+# Szolgáltatás indítása
+sudo systemctl start hulista.service
+
+# Szolgáltatás leállítása
+sudo systemctl stop hulista.service
+
+# Szolgáltatás újraindítása
+sudo systemctl restart hulista.service
+
+# Naplók megtekintése
+sudo journalctl -u hulista.service
+
+# Valós idejű naplók
+sudo journalctl -u hulista.service -f
+
+# Szolgáltatás állapotának ellenőrzése
+sudo systemctl is-active hulista.service
+```

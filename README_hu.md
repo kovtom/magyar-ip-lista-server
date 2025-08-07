@@ -9,6 +9,11 @@ Egy Flask alapú webszerver, amely automatikusan frissíti a magyar IP blokk lis
 - requests könyvtár
 - schedule könyvtár
 
+**Támogatott Operációs Rendszerek:**
+- Windows (részletes tűzfal beállításokkal)
+- Linux (systemd szolgáltatás integrációval)
+- Bármely OS Python 3.6+ támogatással
+
 ## Telepítés
 
 1. Klónozza vagy töltse le a projektet:

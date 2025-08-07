@@ -9,6 +9,11 @@ A Flask-based web server that automatically updates the Hungarian IP block list 
 - requests library
 - schedule library
 
+**Supported Operating Systems:**
+- Windows (with detailed firewall setup)
+- Linux (with systemd service integration)
+- Any OS with Python 3.6+ support
+
 ## Installation
 
 1. Clone or download the project:
