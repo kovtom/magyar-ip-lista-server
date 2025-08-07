@@ -79,7 +79,7 @@ The server automatically:
 ### Available URLs:
 
 - **http://localhost:5000/** - Main page with status information
-- **http://localhost:5000/hu_ip_list.txt** - Download MikroTik commands
+- **http://localhost:5000/hu_ip_list.rsc** - Download MikroTik script
 - **http://localhost:5000/status** - JSON status information
 
 ## MikroTik Configuration
@@ -92,7 +92,7 @@ The server automatically:
 4. Copy the content of `mikrotik_update_script.rsc` file
 5. **Modify the SERVER_URL variable** to your server's IP address:
    ```
-   :local SERVER_URL "http://192.168.1.100:5000/hu_ip_list.txt"
+   :local SERVER_URL "http://192.168.1.100:5000/hu_ip_list.rsc"
    ```
 
 ### 2. Scheduled Execution Setup:
@@ -115,11 +115,14 @@ You can run the script manually in **System > Scripts** menu using the **Run Scr
 - **Automatic updates**: Updates IP list daily at 2:00 AM
 - **Web interface**: Status can be checked from browser
 - **JSON API**: For programmatic access
-- **Fixed filename**: Always `hu_ip_list.txt` (no need to change in MikroTik)
+- **Fixed filename**: Always `hu_ip_list.rsc` (RouterOS script format)
+- **Batched processing**: 50 IP addresses per batch with 30-second delays
 
 ### MikroTik Script:
-- **Automatic download**: Using HTTP GET requests
-- **List refresh**: Removes old, loads new list
+- **Automatic download**: Using HTTP GET requests with proper `/tool fetch` syntax
+- **Batched execution**: Processes IPs in batches of 50 with 30-second delays between batches
+- **Router protection**: Prevents overloading the router during large list updates
+- **List refresh**: Removes old, loads new list efficiently
 - **Error handling**: Detailed logging and error checking
 - **Statistics**: Reports number of processed items
 
@@ -132,7 +135,7 @@ You can run the script manually in **System > Scripts** menu using the **Run Scr
 
 ## Output Files
 
-- **hu_ip_list.txt** - MikroTik commands (fixed name, constantly updated)
+- **hu_ip_list.rsc** - MikroTik script (fixed name, constantly updated)
 
 ## Example Output
 
@@ -363,7 +366,7 @@ http://192.168.1.100:5000/
 
 #### From MikroTik RouterOS:
 ```
-/tool fetch url=http://192.168.1.100:5000/hu_ip_list.txt
+/tool fetch url=http://192.168.1.100:5000/hu_ip_list.rsc dst-path="hu_ip_list.rsc"
 ```
 
 #### Useful Commands:
@@ -451,7 +454,7 @@ curl http://[server-ip]:5000/status
 
 - **hulista.py** - Flask server main program
 - **mikrotik_update_script.rsc** - MikroTik RouterOS script
-- **hu_ip_list.txt** - Generated MikroTik commands (automatically updated)
+- **hu_ip_list.rsc** - Generated MikroTik script (automatically updated)
 - **requirements.txt** - Python dependencies (includes Gunicorn and Waitress)
 - **start_gunicorn.sh** - Production server startup script (Linux/Mac)
 - **start_gunicorn.bat** - Gunicorn startup script (Windows - deprecated, use Waitress)
