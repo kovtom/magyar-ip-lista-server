@@ -3,8 +3,15 @@ REM Gunicorn production server starter for Windows
 
 echo Starting Hungarian IP List Server with Gunicorn...
 
-REM Gunicorn indítása Windows-on
-gunicorn ^
+REM Virtual environment aktiválása és Gunicorn indítása Windows-on
+if exist ".venv\Scripts\activate" (
+    call .venv\Scripts\activate
+    echo Virtual environment activated
+) else (
+    echo Warning: Virtual environment not found, using system Python
+)
+
+.venv\Scripts\gunicorn.exe ^
     --workers 4 ^
     --bind 0.0.0.0:5000 ^
     --timeout 120 ^

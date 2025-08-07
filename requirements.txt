@@ -1,4 +1,5 @@
 flask>=2.0.0
 requests>=2.25.0
 schedule>=1.1.0
-gunicorn>=20.1.0  # Production WSGI server
+gunicorn>=20.1.0  # Production WSGI server (Linux/Mac only)
+waitress>=2.1.0   # Production WSGI server (Windows compatible)
