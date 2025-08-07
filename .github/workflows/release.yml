@@ -1,0 +1,44 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Minden v-vel kezdődő tag-re (pl. v1.0.1, v2.0.0)
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Get tag
+      id: tag
+      run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.tag }}
+        release_name: Magyar IP Lista Server ${{ steps.tag.outputs.tag }} 🇭🇺
+        body_path: GITHUB_RELEASE_TEMPLATE.md
+        draft: false
+        prerelease: false
+
+    - name: Create ZIP archive
+      run: |
+        zip -r magyar-ip-lista-server-${{ steps.tag.outputs.tag }}.zip . \
+          -x "*.git*" "*.github*" "__pycache__*" "*.pyc" "venv/*" ".venv/*"
+
+    - name: Upload ZIP as Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./magyar-ip-lista-server-${{ steps.tag.outputs.tag }}.zip
+        asset_name: magyar-ip-lista-server-${{ steps.tag.outputs.tag }}.zip
+        asset_content_type: application/zip
