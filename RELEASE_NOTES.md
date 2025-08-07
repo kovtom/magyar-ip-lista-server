@@ -1,5 +1,62 @@
 # Magyar IP Lista Server - Release Notes
 
+## v1.1.0 - DShield Block List Integráció (2025-08-07)
+
+### 🎉 Főbb Újdonságok
+
+#### 🔒 Háromforrású Biztonsági Platform
+- **DShield Block List** integráció (`feeds.dshield.org/block.txt`)
+- **Spamhaus DROP Lista** (már meglévő)
+- **Magyar IP Lista** (már meglévő)
+- **Egységes MikroTik integráció** mind a három forráshoz
+
+#### 🛡️ DShield Block List Funkciók
+- **Új biztonsági forrás**: DShield Attack Block lista
+- **Egyedi parser**: Tab-elválasztott formátum (IP + netmask → CIDR)
+- **Address list**: `DSHIELD_BLOCK` MikroTik RouterOS-hez
+- **Lefedettség**: 20+ rosszindulatú IP cím automatikus blokkolása
+- **Ütemezés**: Napi frissítés 2:30-kor
+
+#### 🌐 Továbbfejlesztett Flask Szerver
+- **Új endpoint**: `/dshield_block.rsc` - DShield scriptek letöltése
+- **Frissített Status API**: Mind a három forrás a `/status` végponton
+- **Javított webes felület**: Átfogó dashboard minden forrással
+- **Valós idejű monitoring**: Élő fájl státusz és IP számok
+
+### 📊 Jelenlegi Biztonsági Lefedettség
+
+| Forrás | Lefedettség | Address Lista | Cél |
+|--------|-------------|---------------|-----|
+| 🇭🇺 **Magyar IP-k** | 903 cím | `HU_IP` | Földrajzi engedélyezési lista |
+| 🚫 **Spamhaus DROP** | 1,596 cím | `SPAMHAUS_DROP` | Spam védelem |
+| 🛡️ **DShield Block** | 20+ cím | `DSHIELD_BLOCK` | Támadás megelőzés |
+
+### 🛠️ Technikai Fejlesztések
+
+#### ⚡ Kód Minőség
+- Duplikált függvény definíciók javítása
+- Javított hibakezelés és naplózás
+- Megbízhatóbb kötegelt feldolgozás
+- Jobb erőforrás kezelés
+
+#### 📁 Projekt Menedzsment
+- Frissített `.gitignore` DShield fájlokhoz (`dshield_block.rsc`, `block_*.txt`)
+- Javított ütemező lépcsőzetes frissítésekkel
+- Átfogó Wiki dokumentáció (8 oldal)
+
+#### 🔄 Frissítési Ütemezés
+- **Magyar IP**: naponta 2:00-kor
+- **Spamhaus DROP**: naponta 2:15-kor  
+- **DShield Block**: naponta 2:30-kor
+
+### 🐛 Javított Hibák
+
+- Duplikált Flask route definíciók kijavítása
+- Ütemező sleep duplikáció megoldása
+- Javított fájlkezelési edge case-ek
+
+---
+
 ## v1.0.0 - Első Stabil Verzió (2025-08-07)
 
 ### 🚀 Új Funkciók
@@ -129,13 +186,14 @@ pip install -r requirements.txt --upgrade
 - **Dokumentáció**: Részletes útmutatók README fájlokban
 - **Példa konfigurációk**: MikroTik script sablonok
 
-### 🔮 Tervezett Funkciók (v1.1.0)
+### 🔮 Tervezett Funkciók (v1.2.0)
 
 - **IPv6 támogatás** hozzáadása
 - **Webhook értesítések** lista frissítésről
-- **Több forrás** támogatása (nem csak IPdeny)
+- **További biztonsági források** (például Blocklist.de)
 - **Web admin interface** konfigurációhoz
 - **Docker konténer** egyszerű telepítéshez
+- **Grafikus statisztikák** a webes felületen
 
 ---
 
