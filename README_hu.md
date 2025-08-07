@@ -6,14 +6,20 @@ Egy Flask alapú webszerver, amely automatikusan frissíti a magyar IP blokk lis
 
 ## Követelmények
 
+**Python Alapkövetelmények:**
 - Python 3.6+
 - flask könyvtár
 - requests könyvtár
 - schedule könyvtár
 
+**Produkciós WSGI Szerverek:**
+- gunicorn>=20.1.0 (Linux/Mac - ajánlott)
+- waitress>=2.1.0 (Windows kompatibilis)
+
 **Támogatott Operációs Rendszerek:**
-- Windows (részletes tűzfal beállításokkal)
-- Linux (systemd szolgáltatás integrációval)
+- Windows (részletes tűzfal beállításokkal és Waitress WSGI szerverrel)
+- Linux (systemd szolgáltatás integrációval és Gunicorn WSGI szerverrel)
+- macOS (Gunicorn WSGI szerverrel)
 - Bármely OS Python 3.6+ támogatással
 
 ## Telepítés
@@ -37,13 +43,28 @@ Egy Flask alapú webszerver, amely automatikusan frissíti a magyar IP blokk lis
 ## Használat
 
 ### Szerver indítása:
-```
+
+#### Fejlesztői mód (csak teszteléshez):
+```bash
 python hulista.py
+```
+
+#### Produkciós mód:
+
+**Windows-on:**
+```bash
+start_waitress.bat
+```
+
+**Linux/Mac-en:**
+```bash
+chmod +x start_gunicorn.sh
+./start_gunicorn.sh
 ```
 
 A szerver automatikusan:
 1. Indításkor letölti és frissíti az IP listát
-2. Elindít egy Flask webszervert a 5000-es porton
+2. Elindít egy webszervert a 5000-es porton
 3. Ütemezi a napi frissítéseket (minden nap 2:00-kor)
 
 ### Elérhető URL-ek:
@@ -178,7 +199,7 @@ Ha nincs statikus IP címe, használhat dinamikus DNS szolgáltatást:
    sudo nano /etc/systemd/system/hulista.service
    ```
 
-2. **Service fájl tartalma**:
+2. **Service fájl tartalma** (fejlesztői mód):
    ```ini
    [Unit]
    Description=Magyar IP Lista Flask Szerver
@@ -191,6 +212,27 @@ Ha nincs statikus IP címe, használhat dinamikus DNS szolgáltatást:
    Group=hulista
    WorkingDirectory=/opt/hulista
    ExecStart=/usr/bin/python3 /opt/hulista/hulista.py
+   Restart=always
+   RestartSec=10
+   Environment=PYTHONUNBUFFERED=1
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+3. **Produkciós mód** Gunicorn-nal:
+   ```ini
+   [Unit]
+   Description=Magyar IP Lista Flask Szerver (Gunicorn)
+   After=network.target
+   Wants=network.target
+
+   [Service]
+   Type=simple
+   User=hulista
+   Group=hulista
+   WorkingDirectory=/opt/hulista
+   ExecStart=/opt/hulista/start_gunicorn.sh
    Restart=always
    RestartSec=10
    Environment=PYTHONUNBUFFERED=1
@@ -331,6 +373,25 @@ curl http://[szerver-ip]:5000/status
 ### Szerver nem indul el:
 - Ellenőrizze, hogy a 5000-es port szabad-e
 - Telepítse a hiányzó könyvtárakat
+- **Windows**: Használja `start_waitress.bat` fájlt a produkciós indításhoz
+- **Linux/Mac**: Használja `start_gunicorn.sh` fájlt a produkciós indításhoz
+
+### WSGI Szerver Problémák:
+
+#### Gunicorn nem működik Windows-on:
+```
+Error: fcntl module not available on Windows
+```
+**Megoldás**: Használja a Waitress szervert Windows-on:
+```bash
+pip install waitress
+start_waitress.bat
+```
+
+#### Waitress nem található:
+```bash
+pip install waitress>=2.1.0
+```
 
 ### MikroTik nem tölti le:
 - Ellenőrizze a hálózati kapcsolatot
@@ -373,10 +434,12 @@ curl http://[szerver-ip]:5000/status
 - **hulista.py** - Flask szerver főprogramja
 - **mikrotik_update_script.rsc** - MikroTik RouterOS script
 - **hu_ip_list.txt** - Generált MikroTik parancsok (automatikusan frissül)
+- **requirements.txt** - Python függőségek (Flask, requests, schedule, gunicorn, waitress)
+- **start_gunicorn.sh** - Linux/Mac produkciós szerver indító script
+- **start_waitress.bat** - Windows produkciós szerver indító script
+- **hulista-gunicorn.service** - Systemd service konfiguráció Linux-hoz
 - **README.md** - Angol dokumentáció (átfogó)
 - **README_hu.md** - Ez a magyar dokumentáció (átfogó)
-- **network_setup.md** - Hálózati konfiguráció útmutató (angol) *[elavult - tartalom beolvasztva README.md-be]*
-- **network_setup_hu.md** - Hálózati konfiguráció útmutató (magyar) *[elavult - tartalom beolvasztva README_hu.md-be]*
 
 ## Nyelvi Támogatás
 

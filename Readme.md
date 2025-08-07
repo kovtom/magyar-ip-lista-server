@@ -11,9 +11,14 @@ A Flask-based web server that automatically updates the Hungarian IP block list 
 - requests library
 - schedule library
 
+**Production WSGI Servers:**
+- gunicorn (Linux/Mac only)
+- waitress (Windows compatible)
+
 **Supported Operating Systems:**
-- Windows (with detailed firewall setup)
-- Linux (with systemd service integration)
+- Windows (with detailed firewall setup and Waitress WSGI server)
+- Linux (with systemd service integration and Gunicorn WSGI server)
+- macOS (with Gunicorn WSGI server)
 - Any OS with Python 3.6+ support
 
 ## Installation
@@ -44,6 +49,8 @@ python hulista.py
 ```
 
 **Production mode (recommended for live deployment):**
+
+*Linux/Mac (Gunicorn):*
 ```bash
 # Install Gunicorn
 pip install gunicorn
@@ -51,11 +58,17 @@ pip install gunicorn
 # Start with Gunicorn (Linux/Mac)
 ./start_gunicorn.sh
 
-# Start with Gunicorn (Windows)
-start_gunicorn.bat
-
 # Or directly with Gunicorn
 gunicorn --workers 4 --bind 0.0.0.0:5000 hulista:app
+```
+
+*Windows (Waitress):*
+```cmd
+# Double-click the batch file or run in command prompt
+start_waitress.bat
+
+# Or directly with Waitress
+waitress-serve --host=0.0.0.0 --port=5000 --threads=8 hulista:app
 ```
 
 The server automatically:
@@ -216,7 +229,7 @@ If you don't have a static IP address, you can use dynamic DNS service:
    WantedBy=multi-user.target
    ```
 
-   **OR for Production with Gunicorn** (recommended):
+   **OR for Production with Gunicorn** (Linux/Mac - recommended):
    ```ini
    [Unit]
    Description=Hungarian IP List Flask Server (Gunicorn)
@@ -230,6 +243,27 @@ If you don't have a static IP address, you can use dynamic DNS service:
    WorkingDirectory=/opt/hulista
    Environment=PYTHONUNBUFFERED=1
    ExecStart=/usr/bin/gunicorn --workers 4 --bind 0.0.0.0:5000 --timeout 120 --keepalive 5 --max-requests 1000 --max-requests-jitter 100 --preload --access-logfile - --error-logfile - hulista:app
+   Restart=always
+   RestartSec=10
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   **OR for Production with Waitress** (if using Waitress on Linux):
+   ```ini
+   [Unit]
+   Description=Hungarian IP List Flask Server (Waitress)
+   After=network.target
+   Wants=network.target
+
+   [Service]
+   Type=simple
+   User=hulista
+   Group=hulista
+   WorkingDirectory=/opt/hulista
+   Environment=PYTHONUNBUFFERED=1
+   ExecStart=/usr/bin/waitress-serve --host=0.0.0.0 --port=5000 --threads=8 --connection-limit=1000 hulista:app
    Restart=always
    RestartSec=10
 
@@ -369,6 +403,13 @@ curl http://[server-ip]:5000/status
 ### Server won't start:
 - Check if port 5000 is available
 - Install missing libraries
+- **Windows**: Use `start_waitress.bat` for production instead of `start_gunicorn.bat`
+- **Linux/Mac**: Use `start_gunicorn.sh` for production
+
+### Production server issues:
+- **Gunicorn on Windows**: Not supported natively, use Waitress instead
+- **Waitress performance**: Use Gunicorn on Linux for better performance
+- **Port conflicts**: Change port in startup scripts or use environment variables
 
 ### MikroTik won't download:
 - Check network connectivity
@@ -411,6 +452,11 @@ curl http://[server-ip]:5000/status
 - **hulista.py** - Flask server main program
 - **mikrotik_update_script.rsc** - MikroTik RouterOS script
 - **hu_ip_list.txt** - Generated MikroTik commands (automatically updated)
+- **requirements.txt** - Python dependencies (includes Gunicorn and Waitress)
+- **start_gunicorn.sh** - Production server startup script (Linux/Mac)
+- **start_gunicorn.bat** - Gunicorn startup script (Windows - deprecated, use Waitress)
+- **start_waitress.bat** - Production server startup script (Windows)
+- **hulista-gunicorn.service** - Systemd service file for Linux
 - **README.md** - This comprehensive documentation (English)
 - **README_hu.md** - Hungarian documentation
 - **network_setup.md** - Network configuration guide (English) *[deprecated - content merged into README.md]*
