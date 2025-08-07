@@ -1,5 +1,7 @@
 # Magyar IP Lista Flask Szerver
 
+> **Nyelv:** 🇭🇺 Magyar | [🇬🇧 English](README.md)
+
 Egy Flask alapú webszerver, amely automatikusan frissíti a magyar IP blokk listát és szolgáltatja azt MikroTik routereknek RouterOS parancsok formájában.
 
 ## Követelmények
@@ -375,3 +377,26 @@ curl http://[szerver-ip]:5000/status
 - **README_hu.md** - Ez a magyar dokumentáció (átfogó)
 - **network_setup.md** - Hálózati konfiguráció útmutató (angol) *[elavult - tartalom beolvasztva README.md-be]*
 - **network_setup_hu.md** - Hálózati konfiguráció útmutató (magyar) *[elavult - tartalom beolvasztva README_hu.md-be]*
+
+## Nyelvi Támogatás
+
+Ez a dokumentáció több nyelven érhető el:
+
+- 🇭🇺 **Magyar**: [README_hu.md](README_hu.md) *(jelenlegi)*
+- 🇬🇧 **English**: [README.md](README.md)
+
+Hálózati konfigurációs útmutatók:
+- 🇭🇺 **Magyar**: Tartalom integrálva a README_hu.md-be
+- 🇬🇧 **English**: Tartalom integrálva a README.md-be
+
+## Licenc
+
+MIT Licenc - részletekért lásd a [LICENSE](LICENSE) fájlt.
+
+## Közreműködés
+
+1. Fork-old a projektet
+2. Hozd létre a feature branch-edet (`git checkout -b feature/ValamilyenUjFunkció`)
+3. Commit-old a változásaidat (`git commit -m 'Valamilyen új funkció hozzáadása'`)
+4. Push-old a branch-re (`git push origin feature/ValamilyenUjFunkció`)
+5. Nyiss egy Pull Request-et

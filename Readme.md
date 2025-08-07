@@ -1,5 +1,7 @@
 # Hungarian IP List Flask Server
 
+> **Language:** 🇬🇧 English | [🇭🇺 Magyar](README_hu.md)
+
 A Flask-based web server that automatically updates the Hungarian IP block list and serves it to MikroTik routers in RouterOS command format.
 
 ## Requirements
@@ -378,8 +380,14 @@ curl http://[server-ip]:5000/status
 
 ## Language Support
 
-- 🇬🇧 **English**: README.md, network_setup.md
-- 🇭🇺 **Magyar**: README_hu.md, network_setup_hu.md
+This documentation is available in multiple languages:
+
+- 🇬🇧 **English**: [README.md](README.md) *(current)*
+- 🇭🇺 **Magyar**: [README_hu.md](README_hu.md)
+
+Network configuration guides:
+- 🇬🇧 **English**: Content integrated into README.md
+- 🇭🇺 **Magyar**: Content integrated into README_hu.md
 
 ## License
 
