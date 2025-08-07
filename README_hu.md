@@ -70,7 +70,7 @@ A szerver automatikusan:
 ### Elérhető URL-ek:
 
 - **http://localhost:5000/** - Főoldal, státusz információkkal
-- **http://localhost:5000/hu_ip_list.txt** - MikroTik parancsok letöltése
+- **http://localhost:5000/hu_ip_list.rsc** - MikroTik script letöltése
 - **http://localhost:5000/status** - JSON státusz információk
 
 ## MikroTik Konfiguráció
@@ -83,7 +83,7 @@ A szerver automatikusan:
 4. Másolja be a `mikrotik_update_script.rsc` fájl tartalmát
 5. **Módosítsa a SERVER_URL változót** a saját szerver IP címére:
    ```
-   :local SERVER_URL "http://192.168.1.100:5000/hu_ip_list.txt"
+   :local SERVER_URL "http://192.168.1.100:5000/hu_ip_list.rsc"
    ```
 
 ### 2. Ütemezett futtatás beállítása:
@@ -106,11 +106,14 @@ A scriptet manuálisan is futtathatja a **System > Scripts** menüben a **Run Sc
 - **Automatikus frissítés**: Naponta 2:00-kor frissíti az IP listát
 - **Webinterface**: Böngészőből ellenőrizhető a státusz
 - **JSON API**: Programozott eléréshez
-- **Fix fájlnév**: Mindig `hu_ip_list.txt` (nem kell változtatni a MikroTik-ben)
+- **Fix fájlnév**: Mindig `hu_ip_list.rsc` (RouterOS script formátum)
+- **Kötegelt feldolgozás**: 50 IP címenként kötegekben 30 másodperc szünetekkel
 
 ### MikroTik Script:
-- **Automatikus letöltés**: HTTP GET kérésekkel
-- **Lista frissítés**: Törli a régi, betölti az új listát
+- **Automatikus letöltés**: HTTP GET kérésekkel a helyes `/tool fetch` szintaxissal
+- **Kötegelt végrehajtás**: 50 IP címenként dolgozza fel 30 másodperc szünetekkel
+- **Router védelem**: Megakadályozza a router túlterhelését nagy listák frissítésekor
+- **Lista frissítés**: Hatékonyan törli a régi és betölti az új listát
 - **Hibakezelés**: Részletes naplózás és hibaellenőrzés
 - **Statisztikák**: Beszámol a feldolgozott elemek számáról
 
@@ -123,7 +126,7 @@ A scriptet manuálisan is futtathatja a **System > Scripts** menüben a **Run Sc
 
 ## Kimeneti fájlok
 
-- **hu_ip_list.txt** - MikroTik parancsok (fix név, állandóan frissül)
+- **hu_ip_list.rsc** - MikroTik script (fix név, állandóan frissül)
 
 ## Példa kimenet
 
@@ -333,7 +336,7 @@ http://192.168.1.100:5000/
 
 #### MikroTik RouterOS-ból:
 ```
-/tool fetch url=http://192.168.1.100:5000/hu_ip_list.txt
+/tool fetch url=http://192.168.1.100:5000/hu_ip_list.rsc dst-path="hu_ip_list.rsc"
 ```
 
 #### Hasznos parancsok:
@@ -433,7 +436,7 @@ pip install waitress>=2.1.0
 
 - **hulista.py** - Flask szerver főprogramja
 - **mikrotik_update_script.rsc** - MikroTik RouterOS script
-- **hu_ip_list.txt** - Generált MikroTik parancsok (automatikusan frissül)
+- **hu_ip_list.rsc** - Generált MikroTik script (automatikusan frissül)
 - **requirements.txt** - Python függőségek (Flask, requests, schedule, gunicorn, waitress)
 - **start_gunicorn.sh** - Linux/Mac produkciós szerver indító script
 - **start_waitress.bat** - Windows produkciós szerver indító script

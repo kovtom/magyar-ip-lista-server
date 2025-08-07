@@ -88,20 +88,20 @@ def download_file_as_text(url, output_filename=None):
         print(f"Varatlan hiba: {e}")
         return None
 
-def convert_to_mikrotik_commands(input_filename, output_filename="hu_ip_list.txt"):
+def convert_to_mikrotik_commands(input_filename, output_filename="hu_ip_list.rsc"):
     """
     Atalakitja az IP cimeket MikroTik RouterOS parancsokka.
     
     Args:
         input_filename (str): A bemeneti fajl neve (IP cimeket tartalmaz)
-        output_filename (str): A kimeneti fajl neve (alapertelmezett: hu_ip_list.txt)
+        output_filename (str): A kimeneti fajl neve (alapertelmezett: hu_ip_list.rsc)
     
     Returns:
         str: A kimeneti fajl neve, vagy None hiba eseten
     """
     try:
         # Fix fajlnev hasznalata
-        output_filename = "hu_ip_list.txt"
+        output_filename = "hu_ip_list.rsc"
         
         print(f"Atalakitas indul: {input_filename} -> {output_filename}")
         
@@ -109,17 +109,40 @@ def convert_to_mikrotik_commands(input_filename, output_filename="hu_ip_list.txt
         with open(input_filename, 'r', encoding='utf-8') as input_file:
             lines = input_file.readlines()
         
-        # MikroTik parancsok generalasa
+        # MikroTik parancsok generalasa kötegelt feldolgozással
         mikrotik_commands = []
         processed_count = 0
+        batch_size = 50  # 50 IP címenként kötegek
         
+        # Script fejlec hozzáadása
+        mikrotik_commands.append("# Magyar IP Lista - Automatikusan generalt MikroTik script")
+        mikrotik_commands.append("# Kotegelt feldolgozas 50 IP cimenkent 30 masodperc szunettel")
+        mikrotik_commands.append("")
+        mikrotik_commands.append(":log info \"Magyar IP lista betoltese megkezdve...\"")
+        mikrotik_commands.append("")
+        
+        batch_count = 0
         for line in lines:
             ip_address = line.strip()
             # Csak akkor dolgozzuk fel, ha valodi IP cim vagy halozat van a sorban
             if ip_address and not ip_address.startswith('#') and '/' in ip_address:
+                # Köteg kezdete jelölés
+                if processed_count % batch_size == 0 and processed_count > 0:
+                    batch_count += 1
+                    mikrotik_commands.append("")
+                    mikrotik_commands.append(f":log info \"Koteg {batch_count} feldolgozasa befejezve, 30 masodperc szunet...\"")
+                    mikrotik_commands.append(":delay 30")
+                    mikrotik_commands.append(f":log info \"Koteg {batch_count + 1} feldolgozasa kezdodik...\"")
+                    mikrotik_commands.append("")
+                
                 mikrotik_command = f"/ip firewall address-list add list=HU_IP address={ip_address}"
                 mikrotik_commands.append(mikrotik_command)
                 processed_count += 1
+        
+        # Script lábléc hozzáadása
+        mikrotik_commands.append("")
+        mikrotik_commands.append(f":log info \"Magyar IP lista betoltese befejezve. Osszes IP cim: {processed_count}\"")
+        mikrotik_commands.append(":log info \"Kotegelt feldolgozas sikeresen vegrehajtva!\"")
         
         # Kimeneti fajl irasa
         with open(output_filename, 'w', encoding='utf-8') as output_file:
@@ -141,7 +164,7 @@ def convert_to_mikrotik_commands(input_filename, output_filename="hu_ip_list.txt
 app = Flask(__name__)
 
 # Globalis valtozok
-MIKROTIK_FILE = "hu_ip_list.txt"
+MIKROTIK_FILE = "hu_ip_list.rsc"
 LAST_UPDATE = None
 
 def update_ip_list():
@@ -180,12 +203,12 @@ def update_ip_list():
         print(f"Varatlan hiba a frissites soran: {e}")
         return False
 
-@app.route('/hu_ip_list.txt')
+@app.route('/hu_ip_list.rsc')
 def serve_ip_list():
     """Szolgaltatja a MikroTik IP listat"""
     try:
         if os.path.exists(MIKROTIK_FILE):
-            return send_file(MIKROTIK_FILE, as_attachment=True, download_name='hu_ip_list.txt')
+            return send_file(MIKROTIK_FILE, as_attachment=True, download_name='hu_ip_list.rsc')
         else:
             return "IP lista nem talalhato!", 404
     except Exception as e:
@@ -232,7 +255,7 @@ def index():
         <p><strong>Fajl meret:</strong> {file_size} byte</p>
         <p><strong>IP cimek szama:</strong> {ip_count}</p>
         <p><strong>Utolso frissites:</strong> {LAST_UPDATE.strftime('%Y-%m-%d %H:%M:%S') if LAST_UPDATE else 'Soha'}</p>
-        <p><a href="/hu_ip_list.txt">IP lista letoltese</a></p>
+        <p><a href="/hu_ip_list.rsc">IP lista letoltese</a></p>
         """
     else:
         status_info = "<p><strong>Fajl allapot:</strong> ❌ Nem elerheto</p>"
@@ -284,7 +307,7 @@ def main():
     
     for ip in ip_addresses:
         print(f"  - http://{ip}:5000/")
-        print(f"  - http://{ip}:5000/hu_ip_list.txt")
+        print(f"  - http://{ip}:5000/hu_ip_list.rsc")
         print(f"  - http://{ip}:5000/status")
         print("")
     

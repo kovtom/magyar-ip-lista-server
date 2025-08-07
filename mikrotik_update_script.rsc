@@ -1,16 +1,23 @@
 # MikroTik Script - Magyar IP Lista Automatikus Frissito
 # Ez a script naponta frissiti a magyar IP cimek listajat a Flask szerverrol
 # 
+# FONTOS: A script kotegelt feldolgozast hasznal a router terhelesenek csokkentesere!
+# 50 IP cimenkent 30 masodperc szunetet tart a feldolgozas soran.
+# 
 # Telepites:
 # 1. Masolja be ezt a scriptet a MikroTik System > Scripts menube
 # 2. Nevezze el peldaul "HU_IP_Update"-nek
-# 3. Allitsa be a Scheduler-ben napi futasra
+# 3. Allitsa be a Scheduler-ben napi futasra (ajanlott ejjel)
 #
 # Beallitas elott modositsa a SERVER_URL valtozot a sajat szerver cimere!
 
 # BEALLITASOK - MODOSITSA EZEKET A SAJAT KORNYEZETANAK MEGFELELOEN
-:local SERVER_URL "http://192.168.1.100:5000/hu_ip_list.txt"
+:local SERVER_URL "http://192.168.1.100:5000/hu_ip_list.rsc"
 :local LIST_NAME "HU_IP"
+
+# Kotegelt feldolgozas beallitasai
+:local BATCH_SIZE 50
+:local DELAY_SECONDS 30
 
 # Script kezdete
 :log info "Magyar IP lista frissites kezdese..."
@@ -32,76 +39,39 @@
 :log info ("Uj lista letoltese: " . $SERVER_URL)
 
 :do {
-    # HTTP GET keres a szerverhez
-    :local result [/tool fetch url=$SERVER_URL as-value output=user]
+    # HTTP GET keres a szerverhez - helyes szintaxis
+    /tool fetch url=$SERVER_URL dst-path="hu_ip_list.rsc"
+    :log info "Fajl sikeresen letoltve"
     
-    :if (($result->"status") = "finished") do={
-        :local data ($result->"data")
-        :local lineCount 0
-        :local successCount 0
-        :local errorCount 0
+    # Letoltott fajl beolvasasa
+    :local scriptContent [/file get [/file find name="hu_ip_list.rsc"] contents]
+    
+    :if ([:len $scriptContent] > 0) do={
+        :log info "Script tartalom beolvasva, kotegelt vegrehajtasa kezdodik..."
+        :log info ("Koteg meret: " . $BATCH_SIZE . " IP cim, szunet: " . $DELAY_SECONDS . " masodperc")
         
-        # Sorok feldolgozasa
-        :local lines [:toarray ""]
-        :local currentLine ""
-        :local pos 0
+        # Script vegrehajtasa (a letoltott fajl MikroTik parancsokat tartalmaz kotegelt feldolgozassal)
+        :execute script=$scriptContent
         
-        # Adatok sorokra bontasa
-        :while ($pos < [:len $data]) do={
-            :local char [:pick $data $pos ($pos+1)]
-            :if ($char = "\n" || $char = "\r") do={
-                :if ([:len $currentLine] > 0) do={
-                    :set lines ($lines, $currentLine)
-                    :set currentLine ""
-                }
-            } else={
-                :set currentLine ($currentLine . $char)
-            }
-            :set pos ($pos + 1)
-        }
+        :log info "Kotegelt script sikeresen vegrehajtva"
         
-        # Utolso sor hozzaadasa ha nem ures
-        :if ([:len $currentLine] > 0) do={
-            :set lines ($lines, $currentLine)
-        }
+        # Uj lista elemeinek szamolasa
+        :local newCount [/ip firewall address-list print count-only where list=$LIST_NAME]
+        :log info ("Uj lista betoltve. Elemek szama: " . $newCount)
         
-        # Parancsok vegrehajtasa
-        :foreach line in=$lines do={
-            :set lineCount ($lineCount + 1)
-            
-            # Csak MikroTik parancsokat dolgozza fel
-            :if ([:pick $line 0 3] = "/ip") do={
-                :do {
-                    # Parancs vegrehajtasa
-                    [:parse $line]
-                    :set successCount ($successCount + 1)
-                } on-error={
-                    :set errorCount ($errorCount + 1)
-                    :log warning ("Hiba a parancs vegrehajtasaban: " . $line)
-                }
-            }
-        }
+        # Letoltott fajl torlese (takarekossag)
+        /file remove [find name="hu_ip_list.rsc"]
         
-        # Eredmeny ellenorzese
-        :local finalCount [/ip firewall address-list print count-only where list=$LIST_NAME]
-        
-        :log info ("Frissites befejezve!")
-        :log info ("Feldolgozott sorok: " . $lineCount)
-        :log info ("Sikeres parancsok: " . $successCount)
-        :log info ("Hibas parancsok: " . $errorCount)
-        :log info ("Uj lista merete: " . $finalCount . " IP cim/halozat")
-        
-        # Ertesites kuldese (opcionalis)
-        # /tool e-mail send to="admin@domain.com" subject="MikroTik HU IP lista frissitve" body=("Uj magyar IP lista betoltve: " . $finalCount . " elem")
+        :log info "Magyar IP lista frissites sikeresen befejezve!"
         
     } else={
-        :log error ("HTTP keres sikertelen: " . ($result->"status"))
-        :log error "A lista frissitese sikertelen volt!"
+        :log error "Fajl letoltese sikertelen volt!"
     }
     
 } on-error={
     :log error "Hiba tortent a lista letoltese soran!"
     :log error "Ellenorizze a halozati kapcsolatot es a szerver elerhetoseget!"
+    :log error "Szerver URL: " . $SERVER_URL
 }
 
 :log info "Magyar IP lista frissites script befejezve"
