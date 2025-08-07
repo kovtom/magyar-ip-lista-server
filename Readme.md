@@ -37,8 +37,25 @@ A Flask-based web server that automatically updates the Hungarian IP block list 
 ## Usage
 
 ### Starting the server:
+
+**Development mode (for testing):**
 ```bash
 python hulista.py
+```
+
+**Production mode (recommended for live deployment):**
+```bash
+# Install Gunicorn
+pip install gunicorn
+
+# Start with Gunicorn (Linux/Mac)
+./start_gunicorn.sh
+
+# Start with Gunicorn (Windows)
+start_gunicorn.bat
+
+# Or directly with Gunicorn
+gunicorn --workers 4 --bind 0.0.0.0:5000 hulista:app
 ```
 
 The server automatically:
@@ -178,7 +195,7 @@ If you don't have a static IP address, you can use dynamic DNS service:
    sudo nano /etc/systemd/system/hulista.service
    ```
 
-2. **Service file content**:
+2. **Service file content** (Development with Flask):
    ```ini
    [Unit]
    Description=Hungarian IP List Flask Server
@@ -194,6 +211,27 @@ If you don't have a static IP address, you can use dynamic DNS service:
    Restart=always
    RestartSec=10
    Environment=PYTHONUNBUFFERED=1
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   **OR for Production with Gunicorn** (recommended):
+   ```ini
+   [Unit]
+   Description=Hungarian IP List Flask Server (Gunicorn)
+   After=network.target
+   Wants=network.target
+
+   [Service]
+   Type=simple
+   User=hulista
+   Group=hulista
+   WorkingDirectory=/opt/hulista
+   Environment=PYTHONUNBUFFERED=1
+   ExecStart=/usr/bin/gunicorn --workers 4 --bind 0.0.0.0:5000 --timeout 120 --keepalive 5 --max-requests 1000 --max-requests-jitter 100 --preload --access-logfile - --error-logfile - hulista:app
+   Restart=always
+   RestartSec=10
 
    [Install]
    WantedBy=multi-user.target

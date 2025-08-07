@@ -295,6 +295,11 @@ def main():
     print("A szerver leallitasahoz nyomja meg a Ctrl+C kombinaciot")
     
     try:
+        # Fejlesztői szerver figyelmeztetés elrejtése
+        import logging
+        log = logging.getLogger('werkzeug')
+        log.setLevel(logging.ERROR)
+        
         app.run(host='0.0.0.0', port=5000, debug=False)
     except KeyboardInterrupt:
         print("\nSzerver leallitasa...")
