@@ -311,7 +311,7 @@ def main():
         print(f"  - http://{ip}:5000/status")
         print("")
     
-    print("FONTOS: Halozati tuzifalon keresztuli elereseshez:")
+    print("FONTOS: Halozati tuzfalon keresztuli elereseshez:")
     print("  - Engedjelyezze a 5000-es portot a Windows tuzfalban")
     print("  - Router-ben allitson be port forwardingot ha szukseges")
     print("")
