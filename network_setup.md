@@ -77,7 +77,7 @@ http://192.168.1.100:5000/
 
 ### From MikroTik RouterOS:
 ```
-/tool fetch url=http://192.168.1.100:5000/hu_ip_list.txt
+/tool fetch url=http://192.168.1.100:5000/hu_ip_list.rsc dst-path="hu_ip_list.rsc"
 ```
 
 ## Troubleshooting
